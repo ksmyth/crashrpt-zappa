@@ -8,30 +8,50 @@ from flask import Flask, Response, abort, send_file, request
 import tempfile
 from cgi import escape
 import shutil
+import requests
 
 app = Flask(__name__)
 
 s3 = boto3.resource('s3')
 s3_bucket = 'gme-crashrpts'
-
+SENDGRID_APIKEY = ''
 
 @app.route("/")
 def root():
     return "crashrpt"
 
 
+def email(guid):
+    data = {
+          "personalizations": [
+            {
+              "to": [
+                {
+                  "email": "ksmyth@metamorphsoftware.com"
+                }
+              ],
+              "subject": "GME CrashRpt"
+            }
+          ],
+          "from": {
+            "email": "ksmyth@metamorphsoftware.com"
+          },
+          "content": [
+            {
+              "type": "text/plain",
+              "value": "https://s3.us-east-2.amazonaws.com/{}/{}.zip".format(s3_bucket, guid)
+            }
+          ]
+        }
+    response = requests.post('https://api.sendgrid.com/v3/mail/send', json=data,
+        headers={'Authorization': 'Bearer {}'.format(SENDGRID_APIKEY)})
+
+
 @app.route("/crashrpt", methods=['POST'])
 def crashrpt():
     guid = request.form['crashguid']
-    tmpdir = tempfile.mkdtemp()
-    try:
-        tmpfile = "{}/{}.zip".format(tmpdir, guid)
-        request.files['crashrpt'].save(tmpfile)
-
-        with open(tmpfile, 'rb') as data:
-            s3.Bucket(s3_bucket).put_object(Key='{}.zip'.format(guid), Body=data)
-    finally:
-        shutil.rmtree(tmpdir)
+    s3.Bucket(s3_bucket).put_object(Key='{}.zip'.format(guid), Body=request.files['crashrpt'].stream)
+    email(guid)
     return 'ok'
 
 
