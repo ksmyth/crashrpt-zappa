@@ -5,6 +5,9 @@
         "project_name": "crashrpt-zappa", 
         "runtime": "python2.7", 
         "s3_bucket": "zappa-gme-crashrpt",
+        "domain": "gme-crashrpt.metamorphsoftware.com",
+        "route53_enabled": true,
+        "lets_encrypt_key": "account.key",
         "aws_region": "us-east-1"
     }
 }
