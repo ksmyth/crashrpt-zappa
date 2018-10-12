@@ -1,0 +1,10 @@
+{
+    "production": {
+        "app_function": "crashrpt_zappa.app", 
+        "profile_name": null, 
+        "project_name": "crashrpt-zappa", 
+        "runtime": "python2.7", 
+        "s3_bucket": "zappa-gme-crashrpt",
+        "aws_region": "us-east-1"
+    }
+}
